@@ -127,3 +127,63 @@ body::after {
   color: transparent;
 }
 
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* SplitText line masks: give italic overhangs and descenders room
+   without shifting layout. */
+.split-line-mask {
+  padding: 0 0.12em 0.16em 0;
+  margin: 0 -0.12em -0.16em 0;
+}
+
+/* Each split character carries the wordmark gradient itself, so the
+   gradient survives per-character transforms. */
+.wordmark-char {
+  background-image: linear-gradient(to bottom, var(--color-fg) 10%, rgb(237 237 239 / 0.04) 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
