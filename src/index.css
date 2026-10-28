@@ -1,0 +1,55 @@
+@import 'tailwindcss';
+@import 'lenis/dist/lenis.css';
+
+/* Monochrome system: deep black, graphite, silver, white. "accent" is a
+   cool silver for small highlights; "accent-deep" is a lifted graphite. */
+@theme {
+  --color-void: #070708;
+  --color-panel: #0d0d0f;
+  --color-raised: #151517;
+  --color-edge: #242428;
+  --color-edge-soft: #19191c;
+  --color-fg: #f2f2f3;
+  --color-silver: #c8cad0;
+  --color-dim: #9a9ba2;
+  --color-faint: #5d5e65;
+  --color-accent: #d9dbe0;
+  --color-accent-deep: #1c1c20;
+
+  --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    background: var(--color-void);
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--color-void);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    background: var(--color-silver);
+    color: var(--color-void);
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
