@@ -205,3 +205,78 @@ export const whySurviant = {
   ],
 }
 
+export const recentWork = {
+  eyebrow: 'Recent Work',
+  title: ['Projects That ', 'Drive Results'] as Emphasized,
+  body: "From startup MVPs to enterprise solutions, see how we've helped businesses transform their digital presence and achieve measurable growth.",
+  technologies: 'Technologies',
+  keyFeatures: 'Key Features',
+  bestFor: 'Best For',
+  timeToDevelop: 'Time to Develop',
+  visibleFeatures: 6,
+}
+
+export const leadership = {
+  eyebrow: 'Leadership / Directly involved',
+  title: ['The people leading the engagement ', 'stay close to the work.'] as Emphasized,
+  body: 'Surviant connects product direction and engineering leadership across the Bay Area and India, with a shared view of the business problem and the system being built.',
+  link: 'Meet the leadership team',
+  people: [
+    {
+      role: 'Founder and CEO / Product lead',
+      name: 'Srivant V',
+      bio: 'Srivant leads product direction and full-stack development, connecting business needs to the interface, system, and release plan.',
+      image: '/images/srivant.jpg',
+    },
+    {
+      role: 'CTO / Engineering lead',
+      name: 'Dhyuthi S',
+      bio: 'Dhyuthi leads technical architecture and full-stack engineering, with a focus on system structure, performance, and dependable delivery.',
+      image: '/images/dhyuthi.webp',
+    },
+  ],
+}
+
+export const contact = {
+  title: ['Start a ', 'conversation'] as Emphasized,
+  lead: 'Bring us the business constraint, the system problem, or the product you need to ship.',
+  body: 'We will help you identify the useful first move and tell you when a simpler approach is the better answer.',
+  cta: 'Start a project',
+}
+
+export const footer = {
+  blurb: 'Software, AI, and operating systems designed as one connected whole.',
+  prompt: {
+    title: 'What needs to work better?',
+    body: 'Bring us the business constraint, the system, or the product.',
+    cta: 'Start a project',
+  },
+  columns: [
+    {
+      title: 'Services',
+      items: [
+        { label: 'AI Engineering', href: links.aiEngineering },
+        { label: 'Product Engineering', href: links.productEngineering },
+        { label: 'Digital Transformation', href: links.digitalTransformation },
+        { label: 'All services', href: links.services },
+      ],
+    },
+    {
+      title: 'Company',
+      items: [
+        { label: 'How We Work', href: links.howWeWork },
+        { label: 'Work', href: links.work },
+        { label: 'About', href: links.about },
+        { label: 'Careers', href: links.careers },
+        { label: 'Research', href: links.research },
+        { label: 'Contact', href: links.contact },
+      ],
+    },
+  ],
+  legal: '© 2026 Surviant LLC / Surviant AI Pvt Ltd. All rights reserved.',
+  locations: 'Bay Area / India',
+  legalLinks: [
+    { label: 'Privacy', href: links.privacy },
+    { label: 'Terms', href: links.terms },
+  ],
+}
