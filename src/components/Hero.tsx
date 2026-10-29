@@ -1,250 +1,259 @@
-import { ArrowRight } from 'lucide-react'
-import { useRef, useState } from 'react'
-import { hero, howWeWork, leadership, links, offerings, recentWork, services, systemMap } from '../content'
-import { projects } from '../data/projects'
-import { gsap, ScrollTrigger, SplitText, useGSAP } from '../lib/motion'
-import { Button, Window } from './ui'
+import { Mail, MapPin, Mic, Phone, Users, Video } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { contact, email, hero, howWeWork, leadership, links, offerings } from '../content'
+import { gsap, reducedMotion, SplitText, useGSAP } from '../lib/motion'
+import { Button, Scribble, useInView, Window } from './ui'
 
-// Each layer, in order, with the practice and offerings behind it.
-const layerPractice = [services.practices[2], services.practices[1], services.practices[0]]
-const layerOfferings = [offerings.slice(15), offerings.slice(9, 15), offerings.slice(0, 9)]
+type Stage = 'typing' | 'thinking' | 'plan' | 'clear'
 
-// Scroll progress (0–1 across the pinned hero) where the window has opened, and where it closes.
-const OPEN = 0.16
-const CLOSE = 0.9
+/**
+ * The brief, written live: the constraint is typed in, then the plan
+ * (Think, Build, Sustain) fills itself in underneath. Loops while visible.
+ */
+function useBriefLoop(running: boolean) {
+  const lead = contact.lead
+  const [stage, setStage] = useState<Stage>('typing')
+  const [chars, setChars] = useState(0)
+  const [rows, setRows] = useState(0)
 
-const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
+  useEffect(() => {
+    if (reducedMotion()) {
+      setStage('plan')
+      setChars(lead.length)
+      setRows(3)
+      return
+    }
+    if (!running) return
+    let t: number
+    const after = (ms: number, fn: () => void) => {
+      t = window.setTimeout(fn, ms)
+    }
+    if (stage === 'typing') {
+      if (chars < lead.length) after(chars === 0 ? 900 : 24 + Math.random() * 30, () => setChars((c) => c + 1))
+      else after(500, () => setStage('thinking'))
+    } else if (stage === 'thinking') {
+      after(1100, () => setStage('plan'))
+    } else if (stage === 'plan') {
+      if (rows < 3) after(rows === 0 ? 150 : 750, () => setRows((r) => r + 1))
+      else after(4200, () => setStage('clear'))
+    } else {
+      after(650, () => {
+        setChars(0)
+        setRows(0)
+        setStage('typing')
+      })
+    }
+    return () => window.clearTimeout(t)
+  }, [running, stage, chars, rows, lead.length])
 
-/** The system map as a live document: each layer writes itself as you scroll. */
-function SystemWindow({ step, typed }: { step: number; typed: number }) {
-  const layer = systemMap.layers[step]
-  const practice = layerPractice[step]
-  const list = layerOfferings[step]
-  const written = clamp01(typed / 0.55)
-  const body = layer.body.slice(0, Math.round(layer.body.length * written))
-
-  return (
-    <Window title={systemMap.eyebrow} className="h-full" bodyClassName="grid h-[calc(100%-2.25rem)] md:grid-cols-[14rem_1fr]">
-      <aside className="hidden flex-col border-r border-edge-soft bg-void/50 p-5 md:flex">
-        <img src="/images/surviant-logo.jpg" alt="" className="h-7 w-7 rounded-[6px] grayscale" />
-        <p className="mt-8 font-mono text-[0.6rem] uppercase tracking-[0.14em] text-faint">{systemMap.title.join('')}</p>
-        <ol className="mt-3 space-y-1">
-          {systemMap.layers.map((l, i) => (
-            <li
-              key={l.label}
-              className={`flex items-center gap-3 rounded-md px-2.5 py-2 text-[0.8rem] transition-colors duration-500 ${
-                i === step ? 'bg-raised text-fg' : i < step ? 'text-dim' : 'text-faint'
-              }`}
-            >
-              <span className="font-mono text-[0.62rem]">0{i + 1}</span>
-              {l.label.split(' / ')[1]}
-            </li>
-          ))}
-        </ol>
-        <p className="mt-8 font-mono text-[0.6rem] uppercase tracking-[0.14em] text-faint">{howWeWork.eyebrow}</p>
-        <ul className="mt-3 space-y-1">
-          {howWeWork.phases.map((ph) => (
-            <li key={ph.name} className="px-2.5 py-1.5 text-[0.8rem] text-faint">
-              {ph.name}
-            </li>
-          ))}
-        </ul>
-      </aside>
-
-      <div className="flex min-h-0 flex-col p-6 md:p-10">
-        <div className="flex items-start justify-between gap-6">
-          <p className="eyebrow">{layer.label}</p>
-          <span className="font-mono text-[0.66rem] text-faint">0{step + 1} / 03</span>
-        </div>
-
-        <div key={step} className="mt-6 animate-[step-in_0.7s_var(--ease-expo)_both]">
-          <h3 className="display text-[clamp(2.3rem,5vw,5.25rem)] leading-[1]">{layer.title}</h3>
-          <p className="mt-6 min-h-[3.4em] max-w-xl text-[1.02rem] leading-relaxed text-dim md:text-xl">
-            <span className="sr-only">{layer.body}</span>
-            <span aria-hidden>
-              {body}
-              {written < 1 && (
-                <span className="ml-0.5 inline-block h-[1.05em] w-[2px] translate-y-[0.18em] animate-[caret_1s_steps(1)_infinite] bg-fg" />
-              )}
-            </span>
-          </p>
-          <p
-            className={`mt-5 inline-flex items-center gap-2 rounded-full border border-edge px-3.5 py-1.5 text-[0.82rem] transition-all duration-500 ${
-              written >= 1 ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
-            }`}
-          >
-            <ArrowRight className="h-3.5 w-3.5 text-silver" />
-            {layer.outcome}
-          </p>
-        </div>
-
-        <div className="mt-auto border-t border-edge-soft pt-5">
-          <p className="font-mono text-[0.6rem] uppercase tracking-[0.14em] text-faint">
-            {practice.name} · {practice.count} offerings
-          </p>
-          <ul className="mt-3 flex flex-wrap gap-1.5">
-            {list.map((o, i) => (
-              <li
-                key={o}
-                className={`rounded-md border border-edge-soft bg-raised/60 px-2.5 py-1 text-[0.74rem] text-dim transition-all duration-500 ${
-                  typed > 0.35 + (0.4 * i) / list.length ? 'opacity-100' : 'opacity-0'
-                }`}
-              >
-                {o}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </Window>
-  )
+  return { lead, stage, chars, rows }
 }
 
-function ProjectPeek() {
-  const p = projects[0]
+function BriefWindow({ running }: { running: boolean }) {
+  const { lead, stage, chars, rows } = useBriefLoop(running)
+  const typing = stage === 'typing'
+  const active = Math.max(0, rows - 1)
+
   return (
-    <Window title={recentWork.eyebrow} bodyClassName="p-4">
-      <p className="font-mono text-[0.58rem] uppercase tracking-[0.1em] text-faint">{p.industry}</p>
-      <p className="display mt-2 text-[1.3rem] leading-tight">{p.title}</p>
-      <div className="mt-4 flex items-center justify-between border-t border-edge-soft pt-3">
-        <span className="font-mono text-[0.58rem] uppercase tracking-[0.1em] text-faint">{recentWork.timeToDevelop}</span>
-        <span className="text-[0.72rem]">
-          {p.months} {p.months === 1 ? 'month' : 'months'}
+    <Window className="h-full" bodyClassName="relative flex h-[calc(100%-1.75rem)] flex-col px-6 pb-6 md:px-8">
+      <p className="serif mt-5 text-[1.75rem] md:text-[2.1rem]">{contact.title.join('')}</p>
+      <div className="mt-3 flex flex-wrap gap-2 text-[0.78rem] text-ink-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper px-2.5 py-1">
+          <MapPin className="h-3.5 w-3.5" />
+          {hero.location}
+        </span>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper px-2.5 py-1">
+          <Users className="h-3.5 w-3.5" />
+          {leadership.people.length}
         </span>
       </div>
+
+      <div className={`mt-5 text-[0.86rem] leading-snug transition-opacity duration-500 ${stage === 'clear' ? 'opacity-0' : ''}`}>
+        <p className="text-[0.92rem] leading-relaxed text-ink">
+          <span className="sr-only">{lead}</span>
+          <span aria-hidden>
+            {lead.slice(0, chars)}
+            {typing && <span className="ml-px inline-block h-[1.05em] w-[1.5px] translate-y-[0.2em] animate-[caret_1s_steps(1)_infinite] bg-tang" />}
+          </span>
+        </p>
+
+        <div className="relative mt-4 space-y-3 border-t border-dashed border-line pt-4">
+          {/* Shown between the brief and the plan. */}
+          <div
+            className={`absolute left-0 top-4 inline-flex items-center gap-2 rounded-full border border-line bg-white px-3 py-1.5 text-[0.75rem] text-ink-2 shadow-sm transition-all duration-500 ${
+              stage === 'thinking' ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-1 opacity-0'
+            }`}
+            aria-hidden
+          >
+            <span className="h-3 w-3 animate-[spin_0.9s_linear_infinite] rounded-full border-[1.5px] border-tang border-t-transparent" />
+            {howWeWork.title.join('').split('.')[0]}
+          </div>
+
+          {howWeWork.phases.map((ph, i) => (
+            <div
+              key={ph.name}
+              className={`transition-all duration-700 ease-out ${i < rows ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'}`}
+            >
+              <p className="flex flex-wrap items-baseline gap-x-2">
+                <span className="font-semibold text-ink">{ph.name}</span>
+                <span className="text-[0.78rem] text-tang">
+                  {howWeWork.outcomeLabel} {ph.outcome}
+                </span>
+              </p>
+              <p className="mt-1 text-ink-2">{ph.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Phase switch, like a notes / enhanced toggle. */}
+      <div className="mt-auto flex justify-center pt-4" aria-hidden>
+        <div className="relative grid grid-cols-3 rounded-full border border-line bg-cream p-1 text-[0.78rem]">
+          <span
+            className="absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/3)] rounded-full bg-white shadow-sm transition-transform duration-500 ease-out"
+            style={{ transform: `translateX(${active * 100}%)`, opacity: rows ? 1 : 0 }}
+          />
+          {howWeWork.phases.map((ph, i) => (
+            <span
+              key={ph.name}
+              className={`relative z-10 px-4 py-1.5 text-center transition-colors duration-300 ${rows && i === active ? 'text-ink' : 'text-ink-3'}`}
+            >
+              {ph.name}
+            </span>
+          ))}
+        </div>
+      </div>
     </Window>
   )
 }
 
-function LeadershipPeek() {
+function CallTiles() {
   return (
-    <Window title={leadership.eyebrow.split(' / ')[0]} bodyClassName="space-y-1.5 p-1.5">
-      {leadership.people.map((person) => (
-        <div key={person.name} className="relative aspect-[16/11] overflow-hidden rounded-lg bg-void">
-          <img src={person.image} alt="" className="h-full w-full object-cover object-[center_18%] grayscale" />
-          <span className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-black/85 to-transparent" />
-          <span className="absolute bottom-2 left-2.5 text-[0.7rem] font-medium text-white">{person.name}</span>
-        </div>
-      ))}
-    </Window>
+    <div className="rounded-[16px] bg-[#111] p-1.5 shadow-[0_24px_50px_-20px_rgba(0,0,0,0.6)]">
+      <div className="space-y-1.5">
+        {leadership.people.map((p) => (
+          <div key={p.name} className="relative aspect-square overflow-hidden rounded-[11px] bg-char">
+            <img src={p.image} alt={p.name} className="h-full w-full object-cover object-[center_15%]" />
+            <span className="absolute bottom-1.5 left-1.5 rounded-md bg-black/55 px-1.5 py-0.5 text-[0.62rem] font-medium text-white backdrop-blur">
+              {p.name}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-center gap-1.5 py-1.5" aria-hidden>
+        <span className="grid h-5 w-7 place-items-center rounded-full bg-white/15 text-white">
+          <Mic className="h-3 w-3" />
+        </span>
+        <span className="grid h-5 w-7 place-items-center rounded-full bg-white/15 text-white">
+          <Video className="h-3 w-3" />
+        </span>
+        <span className="grid h-5 w-7 place-items-center rounded-full bg-[#ff3b30] text-white">
+          <Phone className="h-3 w-3 rotate-[135deg]" />
+        </span>
+      </div>
+    </div>
   )
 }
 
 export function Hero() {
   const root = useRef<HTMLElement>(null)
-  const [step, setStep] = useState(0)
-  const [typed, setTyped] = useState(0)
+  const stage = useRef<HTMLDivElement>(null)
+  const inView = useInView(stage)
 
   useGSAP(
     () => {
-      // Which layer is on screen, and how far it has written itself.
-      ScrollTrigger.create({
-        trigger: root.current,
-        start: 'top top',
-        end: 'bottom bottom',
-        onUpdate: (self) => {
-          const q = clamp01((self.progress - OPEN) / (CLOSE - OPEN - 0.04)) * 3
-          const s = Math.min(2, Math.floor(q))
-          setStep(s)
-          setTyped(Math.round(clamp01(q - s) * 100) / 100)
-        },
-      })
-
       const mm = gsap.matchMedia()
       mm.add('(prefers-reduced-motion: no-preference)', () => {
-        SplitText.create('[data-hero-title]', {
-          type: 'lines',
-          mask: 'lines',
-          linesClass: 'split-line',
-          autoSplit: true,
-          onSplit: (self) =>
-            gsap.from(self.lines, { yPercent: 118, duration: 1.5, stagger: 0.1, ease: 'expo.out', delay: 0.1 }),
-        })
-        gsap.from('[data-hero-fade]', { y: 20, opacity: 0, duration: 1.2, stagger: 0.08, ease: 'expo.out', delay: 0.4 })
-        gsap.from('[data-window]', { y: 120, opacity: 0, duration: 1.8, ease: 'expo.out', delay: 0.55 })
+        const tl = gsap.timeline({ delay: 0.15 })
+        const title = SplitText.create('[data-hero-title]', { type: 'lines' })
+        tl.from(title.lines, { y: 50, opacity: 0, duration: 1.2, stagger: 0.09, ease: 'expo.out' })
+          .from('[data-hero-fade]', { y: 20, opacity: 0, duration: 1, stagger: 0.07, ease: 'expo.out' }, 0.25)
+          .from(
+            '[data-hero-piece]',
+            { y: 90, opacity: 0, filter: 'blur(10px)', duration: 1.5, stagger: 0.1, ease: 'expo.out' },
+            0.3,
+          )
+          .to('[data-scribble] path', { strokeDashoffset: 0, duration: 0.9, ease: 'power2.inOut' }, 0.9)
 
-        // Copy leaves, the window rises and opens, side windows come into focus;
-        // at the end everything closes and hands over to the next section.
-        const tl = gsap.timeline({
-          scrollTrigger: { trigger: root.current, start: 'top top', end: 'bottom bottom', scrub: 0.7, invalidateOnRefresh: true },
+        gsap.utils.toArray<HTMLElement>('[data-depth]').forEach((el) => {
+          gsap.to(el, {
+            y: -Number(el.dataset.depth) * 60,
+            ease: 'none',
+            scrollTrigger: { trigger: root.current, start: 'top top', end: 'bottom top', scrub: true },
+          })
         })
-        tl.to('[data-hero-copy]', { opacity: 0, y: -80, filter: 'blur(12px)', ease: 'power2.in', duration: OPEN }, 0)
-          .fromTo(
-            '[data-window-pos]',
-            { y: () => window.innerHeight * 0.6, scale: 0.86 },
-            { y: 0, scale: 1, ease: 'power2.inOut', duration: OPEN },
-            0,
-          )
-          .fromTo(
-            '[data-side]',
-            { opacity: 0, filter: 'blur(14px)', x: (i: number) => (i ? 80 : -80) },
-            { opacity: 1, filter: 'blur(0px)', x: 0, ease: 'power2.out', duration: 0.09, stagger: 0.03 },
-            OPEN - 0.04,
-          )
-          .to(
-            '[data-side]',
-            { opacity: 0, filter: 'blur(14px)', x: (i: number) => (i ? 80 : -80), ease: 'power2.in', duration: 0.07 },
-            CLOSE - 0.06,
-          )
-          .to(
-            '[data-window-pos]',
-            { scale: 0.9, y: -70, opacity: 0, filter: 'blur(8px)', ease: 'power2.in', duration: 1 - CLOSE },
-            CLOSE,
-          )
+        return () => title.revert()
+      })
+      mm.add('(prefers-reduced-motion: reduce)', () => {
+        gsap.set('[data-scribble] path', { strokeDashoffset: 0 })
       })
     },
     { scope: root },
   )
 
   return (
-    <section ref={root} id="top" className="relative z-10 h-[420vh]">
-      <div className="sticky top-0 h-svh overflow-hidden">
-        {/* Backdrop: masked dot field and a cold light from above. */}
-        <div
-          aria-hidden
-          className="dot-grid absolute inset-0 [mask-image:radial-gradient(ellipse_75%_65%_at_50%_30%,#000_20%,transparent_75%)]"
-        />
-        <div
-          aria-hidden
-          className="absolute left-1/2 top-[-20%] h-[70vh] w-[min(1200px,130vw)] -translate-x-1/2 rounded-full bg-white/[0.045] blur-[120px]"
-        />
+    <section ref={root} id="top" className="relative overflow-hidden pb-20 pt-28 md:pb-28 md:pt-36">
+      <div className="wrap grid items-center gap-14 lg:grid-cols-[0.95fr_1.1fr] lg:gap-12">
+        <div>
+          <p data-hero-fade className="inline-flex items-center gap-2 rounded-full bg-cream py-1 pl-1 pr-3.5 text-[0.82rem] text-ink-2">
+            <span className="rounded-full bg-tang px-2.5 py-0.5 text-[0.72rem] font-medium text-white">{hero.location}</span>
+            {hero.eyebrow}
+          </p>
 
-        <div data-hero-copy className="shell absolute inset-x-0 top-[17vh] text-center">
-          <div data-hero-fade className="flex justify-center">
-            <p className="inline-flex items-center gap-1 rounded-full border border-edge bg-panel/80 p-1 font-mono text-[0.64rem] uppercase tracking-[0.12em] backdrop-blur">
-              <span className="rounded-full bg-raised px-3 py-1 text-fg">{hero.eyebrow}</span>
-              <span className="hidden px-3 text-dim sm:inline">{hero.location}</span>
-            </p>
-          </div>
-          <h1
-            data-hero-title
-            className="display mx-auto mt-7 max-w-[13em] text-balance text-[clamp(3rem,6.6vw,7.5rem)] leading-[0.96]"
-          >
+          <h1 data-hero-title className="serif mt-7 text-[clamp(3.1rem,6.3vw,6.1rem)] leading-[0.98]">
             {hero.title[0]}
-            <em className="silver whitespace-nowrap">{hero.title[1]}</em>
+            <span className="relative inline-block whitespace-nowrap">
+              <em className="font-[360]">{hero.title[1]}</em>
+              <Scribble manual className="-bottom-2 left-[-2%] h-4 w-[104%] text-tang" />
+            </span>
           </h1>
-          <p data-hero-fade className="mx-auto mt-6 max-w-[34rem] text-[1.02rem] leading-relaxed text-dim md:text-lg">
+
+          <p data-hero-fade className="mt-8 max-w-[29rem] text-[1.12rem] leading-relaxed text-ink-2">
             {hero.body}
           </p>
-          <div data-hero-fade className="mt-8 flex flex-wrap justify-center gap-3">
+          <div data-hero-fade className="mt-9 flex flex-wrap gap-3">
             <Button href={links.contact}>{hero.primary}</Button>
-            <Button href={links.services} variant="ghost">
+            <Button href={links.services} variant="paper">
               {hero.secondary}
             </Button>
           </div>
+          <a
+            data-hero-fade
+            href={`mailto:${email}`}
+            className="mt-8 inline-flex items-center gap-2 text-[0.88rem] text-ink-3 transition-colors hover:text-ink"
+          >
+            <Mail className="h-4 w-4" />
+            {email}
+          </a>
         </div>
 
-        <div className="absolute inset-x-0 top-[12vh] flex justify-center px-4">
-          <div data-window-pos className="relative w-[min(1120px,100%)] origin-top">
-            <div data-window className="h-[66svh] max-h-[680px] md:h-[74vh]">
-              <SystemWindow step={step} typed={typed} />
+        {/* Product composition */}
+        <div ref={stage} className="relative h-[480px] sm:h-[560px] lg:h-[min(640px,74vh)] lg:min-h-[560px]">
+          <div data-hero-piece className="absolute left-0 top-[12%] h-[76%] w-[40%]">
+            <div
+              data-depth="0.4"
+              className="h-full w-full rounded-[10px] bg-tang bg-[repeating-linear-gradient(-45deg,rgba(255,255,255,0.16)_0_1px,transparent_1px_10px)]"
+            />
+          </div>
+          <div data-hero-piece className="absolute right-0 top-0 h-[62%] w-[48%]">
+            <div data-depth="0.7" className="h-full w-full overflow-hidden rounded-[10px] bg-char p-4">
+              <ul className="columns-2 gap-4 font-mono text-[0.6rem] uppercase leading-[1.9] tracking-wider text-white/25" aria-hidden>
+                {offerings.map((o) => (
+                  <li key={o}>{o}</li>
+                ))}
+              </ul>
             </div>
+          </div>
 
-            <div data-side className="absolute -left-28 bottom-[7%] hidden w-[14rem] opacity-0 xl:block">
-              <ProjectPeek />
+          <div data-hero-piece className="absolute left-[4%] top-[6%] z-10 h-[88%] w-[92%] sm:left-[11%] sm:w-[68%]">
+            <div data-depth="0.15" className="h-full">
+              <BriefWindow running={inView} />
             </div>
-            <div data-side className="absolute -right-28 top-[12%] hidden w-[12.5rem] opacity-0 xl:block">
-              <LeadershipPeek />
+          </div>
+
+          <div data-hero-piece className="absolute bottom-[3%] right-0 z-20 hidden w-[9.5rem] sm:block lg:-right-2">
+            <div data-depth="1.2">
+              <CallTiles />
             </div>
           </div>
         </div>

@@ -1,24 +1,15 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import '@fontsource/instrument-serif/400.css'
-import '@fontsource/instrument-serif/400-italic.css'
-import '@fontsource/ibm-plex-sans/400.css'
-import '@fontsource/ibm-plex-sans/500.css'
-import '@fontsource/ibm-plex-sans/600.css'
-import '@fontsource/ibm-plex-mono/400.css'
-import '@fontsource/ibm-plex-mono/500.css'
+import '@fontsource-variable/fraunces/full.css'
+import '@fontsource-variable/fraunces/full-italic.css'
+import '@fontsource-variable/geist/wght.css'
+import '@fontsource-variable/geist-mono/wght.css'
 import './index.css'
 import App from './App'
 
-// Headlines are split into lines for their reveals, so measure them only
-// once the real fonts are in (with a timeout so a slow font never blocks).
-const faces = [
-  '400 1em "Instrument Serif"',
-  'italic 400 1em "Instrument Serif"',
-  '400 1em "IBM Plex Sans"',
-  '500 1em "IBM Plex Sans"',
-  '400 1em "IBM Plex Mono"',
-]
+// Headlines are split into lines for their reveals, so wait for the real
+// fonts before the first measure (with a timeout so a slow font never blocks).
+const faces = ['400 1em "Fraunces Variable"', 'italic 400 1em "Fraunces Variable"', '400 1em "Geist Variable"']
 const fontsReady = Promise.all(faces.map((f) => document.fonts.load(f)))
 const timeout = new Promise((resolve) => setTimeout(resolve, 2500))
 

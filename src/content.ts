@@ -141,7 +141,7 @@ export const howWeWork = {
   body: 'The work moves through seven real stages, from understanding the business to improving the live system. These three phases keep that sequence easy to follow.',
   link: 'See the complete delivery sequence',
   outcomeLabel: 'Outcome /',
-  // Stage names are from surviant.com/how-we-work.
+  // Stages are verbatim from surviant.com/how-we-work.
   phases: [
     {
       label: 'Phase / Think',
@@ -149,9 +149,24 @@ export const howWeWork = {
       body: 'Understand the business, define the constraint, and design the system before expensive choices become fixed.',
       outcome: 'A grounded direction',
       stages: [
-        ['01', 'Understand your business'],
-        ['02', 'Design and architect'],
-        ['03', 'Present and refine'],
+        {
+          n: '01',
+          name: 'Understand your business',
+          body: 'We learn how the work happens today, who depends on it, where it breaks down, and what a useful result changes.',
+          outcome: 'Shared business context',
+        },
+        {
+          n: '02',
+          name: 'Design and architect',
+          body: 'We shape the product path, data flow, system boundaries, and technical choices around the constraints that matter.',
+          outcome: 'Product and system direction',
+        },
+        {
+          n: '03',
+          name: 'Present and refine',
+          body: 'You review the proposed direction before implementation. We resolve uncertainty while the expensive choices are still easy to change.',
+          outcome: 'A reviewed build plan',
+        },
       ],
     },
     {
@@ -160,8 +175,18 @@ export const howWeWork = {
       body: 'Ship in visible stages, test the parts that carry risk, and keep your team close to every important decision.',
       outcome: 'Working software',
       stages: [
-        ['04', 'Build in stages, with you in the loop'],
-        ['05', 'Test and prove it works'],
+        {
+          n: '04',
+          name: 'Build in stages, with you in the loop',
+          body: 'We deliver visible increments, explain meaningful tradeoffs, and keep feedback attached to working software rather than abstract status reports.',
+          outcome: 'Reviewable product increments',
+        },
+        {
+          n: '05',
+          name: 'Test and prove it works',
+          body: 'We test software behavior, AI quality where relevant, failure paths, performance, accessibility, and the conditions required for release.',
+          outcome: 'Evidence for release',
+        },
       ],
     },
     {
@@ -170,8 +195,18 @@ export const howWeWork = {
       body: 'Run, maintain, and improve the system with clear ownership, useful documentation, and evidence from production.',
       outcome: 'A system that keeps moving',
       stages: [
-        ['06', 'Maintain and run it'],
-        ['07', 'Keep building'],
+        {
+          n: '06',
+          name: 'Maintain and run it',
+          body: 'We support the production system with monitoring, documentation, maintenance, and a practical response path for issues.',
+          outcome: 'An owned production system',
+        },
+        {
+          n: '07',
+          name: 'Keep building',
+          body: 'Usage and operating evidence guide the next release, whether that means improving a workflow, adding a capability, or simplifying what exists.',
+          outcome: 'A useful next move',
+        },
       ],
     },
   ],
