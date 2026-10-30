@@ -22,9 +22,9 @@ function Frame({ i, children }: { i: number; children: ReactNode }) {
       <div className="relative flex h-full w-full max-w-[760px] flex-col overflow-hidden rounded-t-xl border border-b-0 border-line-2 bg-black/80 backdrop-blur">
         <WindowBar>
           <span className="truncate text-[0.74rem] text-fg-2">{l.title}</span>
-          <Chip tone={tone} className="ml-auto hidden sm:inline-flex">
-            {l.outcome}
-          </Chip>
+          <span className="ml-auto hidden sm:block">
+            <Chip tone={tone}>{l.outcome}</Chip>
+          </span>
         </WindowBar>
         <div className="min-h-0 flex-1 p-4 md:p-6">{children}</div>
       </div>
@@ -195,8 +195,8 @@ export function SystemMap() {
       <div className="wrap">
         <Kicker>{systemMap.eyebrow}</Kicker>
         <Title
-          text={['Operation to product to intelligence. ', 'Three layers, built and owned by one accountable team.']}
-          className="mt-5 max-w-[46rem] text-[clamp(1.85rem,3.4vw,2.75rem)]"
+          text={['Operation to product to intelligence. ', 'Three layers, one accountable team.']}
+          className="mt-5 max-w-[44rem] text-[clamp(1.85rem,3.4vw,2.75rem)]"
         />
 
         <div
