@@ -1,20 +1,20 @@
 import { useRef } from 'react'
 import { leadership, links } from '../content'
 import { gsap, useGSAP } from '../lib/motion'
-import { Kicker, TextLink, Title } from './ui'
+import { EASE, Heading, TextLink } from './ui'
 
 export function Leadership() {
   const root = useRef<HTMLElement>(null)
 
+  // Each portrait opens upward while the photograph settles inside it.
   useGSAP(
     () => {
       gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
         gsap.utils.toArray<HTMLElement>('[data-portrait]').forEach((el, i) => {
-          const img = el.querySelector('img')
           gsap
-            .timeline({ scrollTrigger: { trigger: el, start: 'top 85%', once: true } })
-            .fromTo(el, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.4, ease: 'expo.out', delay: i * 0.12 })
-            .from(img, { scale: 1.25, duration: 1.8, ease: 'expo.out' }, '<')
+            .timeline({ scrollTrigger: { trigger: el, start: 'top 82%', once: true }, delay: i * 0.15 })
+            .fromTo(el, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.6, ease: 'expo.inOut' })
+            .from(el.querySelector('img'), { scale: 1.2, duration: 2, ease: EASE }, 0.3)
         })
       })
     },
@@ -22,40 +22,34 @@ export function Leadership() {
   )
 
   return (
-    <section ref={root} id="leadership" className="border-t border-line py-28 md:py-40">
-      <div className="wrap grid gap-12 lg:grid-cols-12">
-        <div className="lg:col-span-5 lg:pr-8">
-          <div className="lg:sticky lg:top-28">
-            <Kicker>{leadership.eyebrow}</Kicker>
-            <Title text={leadership.title} className="mt-5 text-[clamp(1.75rem,3vw,2.4rem)]" />
-            <p data-reveal className="mt-5 text-[0.95rem] leading-relaxed text-fg-3">
+    <section ref={root} id="leadership" className="border-t border-line">
+      <div className="frame py-24 md:py-32">
+        <div className="grid gap-8 lg:grid-cols-[1.5fr_1fr] lg:items-end lg:gap-16">
+          <Heading label={leadership.eyebrow} text={leadership.title} />
+          <div>
+            <p data-fade className="text-[15px] leading-[1.7] text-fg-2">
               {leadership.body}
             </p>
-            <TextLink href={links.about} className="mt-5">
-              {leadership.link}
-            </TextLink>
+            <div data-fade="0.1" className="mt-5">
+              <TextLink href={links.about}>{leadership.link}</TextLink>
+            </div>
           </div>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:col-span-7">
+        <div className="mt-16 grid gap-3 lg:grid-cols-2">
           {leadership.people.map((p) => (
-            <article key={p.name} className="group overflow-hidden rounded-2xl border border-line bg-s1">
-              <div data-portrait className="relative aspect-[4/5] overflow-hidden">
+            <article key={p.name} className="group flex gap-5 rounded-2xl border border-line-2 bg-s1 p-4 md:gap-7 md:p-5">
+              <div data-portrait className="aspect-[4/5] w-28 shrink-0 overflow-hidden rounded-xl md:w-40">
                 <img
                   src={p.image}
                   alt={p.name}
-                  className="h-full w-full object-cover object-[center_20%] transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
+                  className="h-full w-full object-cover object-[center_20%] transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" aria-hidden />
-                <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/50 px-2.5 py-1 text-[0.72rem] text-fg backdrop-blur-md">
-                  <span className="h-1.5 w-1.5 rounded-full bg-green" />
-                  {p.name}
-                </span>
               </div>
-              <div className="p-6">
-                <p className="kicker !text-[0.62rem]">{p.role}</p>
-                <h3 className="mt-3 text-[1.15rem] font-medium tracking-[-0.025em]">{p.name}</h3>
-                <p className="mt-2 text-[0.88rem] leading-relaxed text-fg-3">{p.bio}</p>
+              <div data-seq className="flex flex-col py-1">
+                <p className="label !text-[10px]">{p.role}</p>
+                <h3 className="mt-3 text-[20px] font-medium tracking-[-0.03em]">{p.name}</h3>
+                <p className="mt-2 text-[14px] leading-[1.65] text-fg-3">{p.bio}</p>
               </div>
             </article>
           ))}

@@ -2,7 +2,6 @@ import { Menu, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { email, links, nav } from '../content'
 import { getLenis } from '../lib/motion'
-import { Button } from './ui'
 
 // On the landing page the nav jumps to its sections; Research keeps its own page.
 const items = [
@@ -31,20 +30,20 @@ export function Nav() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color] duration-500 ${
-        scrolled || open ? 'border-line bg-black/75 backdrop-blur-xl' : 'border-transparent'
+      className={`fixed inset-x-0 top-0 z-50 animate-[drop-in_1.1s_var(--ease-out)_both] border-b transition-[background-color,border-color] duration-500 ${
+        scrolled || open ? 'border-line bg-black/80 backdrop-blur-lg' : 'border-transparent'
       }`}
     >
-      <nav aria-label="Primary" className="wrap flex h-16 items-center gap-10">
+      <nav aria-label="Primary" className="frame flex h-16 items-center gap-10">
         <a href="#top" className="flex items-center gap-2.5" aria-label="Surviant home">
           <img src="/images/surviant-logo.jpg" alt="" className="h-7 w-7 rounded-[7px]" />
-          <span className="text-[1rem] font-medium tracking-[-0.03em]">{nav.name}</span>
+          <span className="text-[15px] font-semibold tracking-[-0.02em]">{nav.name}</span>
         </a>
 
         <ul className="hidden items-center gap-7 md:flex">
           {items.map((item) => (
             <li key={item.label}>
-              <a href={item.href} className="text-[0.875rem] text-fg-3 transition-colors duration-300 hover:text-fg">
+              <a href={item.href} className="text-[13.5px] text-fg-2 transition-colors duration-200 hover:text-fg">
                 {item.label}
               </a>
             </li>
@@ -52,17 +51,15 @@ export function Nav() {
         </ul>
 
         <div className="ml-auto flex items-center gap-2">
-          <a
-            href={`mailto:${email}`}
-            className="hidden h-9 items-center rounded-full border border-line-2 px-4 text-[0.82rem] font-medium transition-colors hover:border-white/30 sm:inline-flex"
-          >
+          <a href={`mailto:${email}`} className="hidden h-[34px] items-center px-3 text-[13.5px] text-fg-2 transition-colors hover:text-fg sm:flex">
             Talk to us
           </a>
-          <span className="hidden sm:block">
-            <Button href={links.contact} className="!h-9 !px-4 !text-[0.82rem]">
-              {nav.cta}
-            </Button>
-          </span>
+          <a
+            href={links.contact}
+            className="hidden h-[34px] items-center rounded-full bg-white px-4 text-[13px] font-semibold text-black transition-[background-color,transform] duration-200 hover:-translate-y-px hover:bg-[#e7e7ea] sm:flex"
+          >
+            {nav.cta}
+          </a>
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
@@ -76,7 +73,7 @@ export function Nav() {
       </nav>
 
       {open && (
-        <div className="wrap border-t border-line pb-8 pt-4 md:hidden">
+        <div className="frame border-t border-line pb-8 pt-4 md:hidden">
           <ul>
             {items.map((item) => (
               <li key={item.label} className="border-b border-line">
@@ -86,9 +83,12 @@ export function Nav() {
               </li>
             ))}
           </ul>
-          <Button href={links.contact} className="mt-6 w-full justify-center !h-11">
+          <a
+            href={links.contact}
+            className="mt-6 flex h-11 items-center justify-center rounded-full bg-white text-[14px] font-semibold text-black"
+          >
             {nav.cta}
-          </Button>
+          </a>
         </div>
       )}
     </header>

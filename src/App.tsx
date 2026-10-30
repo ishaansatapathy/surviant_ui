@@ -1,12 +1,11 @@
 import { useEffect, useRef } from 'react'
-import { Closing } from './components/Closing'
+import { Closing, Footer } from './components/Closing'
 import { Hero } from './components/Hero'
 import { Leadership } from './components/Leadership'
+import { Marquee } from './components/Marquee'
 import { Nav } from './components/Nav'
-import { Offerings } from './components/Offerings'
 import { Practices } from './components/Practices'
 import { Process } from './components/Process'
-import { SystemMap } from './components/SystemMap'
 import { useReveals } from './components/ui'
 import { Why } from './components/Why'
 import { Work } from './components/Work'
@@ -40,7 +39,7 @@ export default function App() {
   useReveals(root)
 
   return (
-    <div ref={root}>
+    <div ref={root} className="isolate">
       <a
         href="#main"
         className="sr-only z-[100] rounded-full bg-fg px-5 py-3 text-black focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
@@ -50,8 +49,7 @@ export default function App() {
       <Nav />
       <main id="main">
         <Hero />
-        <Offerings />
-        <SystemMap />
+        <Marquee />
         <Practices />
         <Process />
         <Why />
@@ -59,6 +57,7 @@ export default function App() {
         <Leadership />
         <Closing />
       </main>
+      <Footer />
     </div>
   )
 }

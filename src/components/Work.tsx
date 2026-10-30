@@ -1,152 +1,113 @@
-import { Check } from 'lucide-react'
-import { useRef, useState } from 'react'
-import { links, nav, recentWork } from '../content'
+import { useRef } from 'react'
+import { links, recentWork } from '../content'
 import { projects } from '../data/projects'
-import { reducedMotion } from '../lib/motion'
-import { Button, Kicker, Title, tones, useInView, WindowBar } from './ui'
+import { gsap, useGSAP } from '../lib/motion'
+import { Button } from './ui'
 
-// A spread of the fifteen: productivity, enterprise, nutrition, personal finance, fintech, travel.
-const featured = [0, 1, 2, 7, 11, 13].map((i) => ({ ...projects[i], n: i + 1 }))
-const cardTones = [tones.violet, tones.blue, tones.orange, tones.green, tones.pink, tones.amber]
-const DURATION = 4000
+const picks = [0, 1, 2, 3, 7, 9, 11, 13]
+// Where each card comes to rest around the headline, and its resting tilt.
+const spots = [
+  { left: '3%', top: '11%', r: -7 },
+  { left: '22%', top: '7%', r: 4 },
+  { left: '57%', top: '8%', r: -3 },
+  { left: '78%', top: '12%', r: 6 },
+  { left: '2%', top: '62%', r: 5 },
+  { left: '22%', top: '70%', r: -5 },
+  { left: '59%', top: '69%', r: 4 },
+  { left: '79%', top: '61%', r: -6 },
+]
+const light = new Set([1, 6])
+
+function Card({ index, k }: { index: number; k: number }) {
+  const p = projects[index]
+  const isLight = light.has(k)
+  return (
+    <article
+      className={`flex w-[clamp(13.5rem,17vw,15.5rem)] flex-col rounded-2xl border p-5 ${
+        isLight ? 'border-transparent bg-[#f2f2f0] text-black' : 'border-line-2 bg-[#111] text-fg'
+      }`}
+    >
+      <div className="flex items-baseline justify-between gap-3">
+        <span className={`font-mono text-[10px] uppercase tracking-[0.12em] ${isLight ? 'text-black/50' : 'text-fg-3'}`}>{p.industry}</span>
+        <span className={`font-mono text-[10px] ${isLight ? 'text-black/40' : 'text-fg-4'}`}>{String(index + 1).padStart(2, '0')}</span>
+      </div>
+      <h3 className="mt-8 text-[17px] font-medium leading-snug tracking-[-0.025em]">{p.title}</h3>
+      <p className={`mt-2 line-clamp-2 text-[13px] leading-[1.55] ${isLight ? 'text-black/60' : 'text-fg-3'}`}>{p.description}</p>
+      <p className={`mt-4 border-t pt-3 text-[12.5px] ${isLight ? 'border-black/10 text-black/70' : 'border-line text-fg-2'}`}>
+        {p.months} {p.months === 1 ? 'month' : 'months'} to develop
+      </p>
+    </article>
+  )
+}
 
 export function Work() {
-  const stage = useRef<HTMLDivElement>(null)
-  const inView = useInView(stage)
-  const [active, setActive] = useState(0)
-  const [hover, setHover] = useState(false)
-  const playing = inView && !hover
-  const count = featured.length
-  const p = featured[active]
+  const root = useRef<HTMLElement>(null)
+
+  // Desktop: while the section holds, the project cards fly up from below and settle around the headline.
+  useGSAP(
+    () => {
+      gsap.matchMedia().add('(min-width: 1024px) and (prefers-reduced-motion: no-preference)', () => {
+        const tl = gsap.timeline({
+          defaults: { ease: 'power3.out' },
+          scrollTrigger: { trigger: '[data-fly-track]', start: 'top 70%', end: 'bottom bottom', scrub: 1 },
+        })
+        tl.from('[data-fly-copy] > *', { opacity: 0, y: 40, stagger: 0.08, duration: 0.6 }, 0)
+        gsap.utils.toArray<HTMLElement>('[data-fly]').forEach((el, i) => {
+          const r = spots[i].r
+          tl.fromTo(
+            el,
+            { y: () => window.innerHeight * (0.95 + (i % 3) * 0.12), x: (i % 4 < 2 ? -1 : 1) * 80, rotate: r * 5, opacity: 0 },
+            { y: 0, x: 0, rotate: r, opacity: 1, duration: 1 },
+            0.15 + i * 0.16,
+          )
+        })
+        tl.to({}, { duration: 0.4 })
+      })
+    },
+    { scope: root },
+  )
 
   return (
-    <section id="portfolio" className="overflow-hidden border-t border-line py-28 md:py-40">
-      <div className="wrap text-center">
-        <Kicker className="justify-center">{recentWork.eyebrow}</Kicker>
-        <Title
-          text={['Projects that drive results. ', 'From startup MVPs to enterprise solutions.']}
-          className="mx-auto mt-5 max-w-[48rem] text-[clamp(1.85rem,3.4vw,2.75rem)]"
-        />
+    <section ref={root} id="portfolio" className="border-t border-line">
+      {/* Phones: a plain stack. */}
+      <div className="frame py-24 lg:hidden">
+        <p data-fade className="label">
+          {recentWork.eyebrow}
+        </p>
+        <h2 data-lines className="heading mt-5 text-[2rem]">
+          <span className="text-fg">Projects that </span>
+          <span className="text-fg-3">drive results.</span>
+        </h2>
+        <p data-fade className="mt-5 text-[15px] leading-[1.7] text-fg-2">
+          {recentWork.body}
+        </p>
+        <div data-seq className="mt-10 grid gap-3 sm:grid-cols-2">
+          {picks.map((index, k) => (
+            <Card key={index} index={index} k={k} />
+          ))}
+        </div>
       </div>
 
-      <div role="tablist" aria-label="Industries" className="no-scrollbar mt-10 flex gap-2 overflow-x-auto px-5 md:justify-center">
-        {featured.map((f, i) => (
-          <button
-            key={f.title}
-            type="button"
-            role="tab"
-            aria-selected={i === active}
-            onClick={() => setActive(i)}
-            className={`relative shrink-0 overflow-hidden rounded-full px-4 py-2 text-[0.82rem] transition-colors duration-300 ${
-              i === active ? 'bg-white/[0.1] text-fg' : 'bg-white/[0.04] text-fg-3 hover:text-fg-2'
-            }`}
-          >
-            {f.industry}
-            {i === active && (
-              <span
-                key={`p-${i}`}
-                onAnimationEnd={() => setActive((a) => (a + 1) % count)}
-                className={`absolute inset-x-3 bottom-0 h-px origin-left ${cardTones[i].bg}`}
-                style={
-                  reducedMotion()
-                    ? undefined
-                    : { animation: `grow ${DURATION}ms linear forwards`, animationPlayState: playing ? 'running' : 'paused' }
-                }
-                aria-hidden
-              />
-            )}
-          </button>
-        ))}
-      </div>
-
-      <div
-        ref={stage}
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
-        className="relative mx-auto mt-10 h-[26rem] max-w-[1400px] md:h-[30rem]"
-      >
-        {featured.map((f, i) => {
-          let o = i - active
-          if (o > count / 2) o -= count
-          if (o < -count / 2) o += count
-          const t = cardTones[i]
-          const visible = Math.abs(o) <= 1
-          return (
-            <article
-              key={f.title}
-              aria-hidden={o !== 0}
-              onClick={() => o !== 0 && setActive(i)}
-              className={`absolute left-1/2 top-0 h-full w-[min(46rem,88vw)] overflow-hidden rounded-2xl border border-line-2 bg-s1 transition-[transform,opacity,filter] duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                o === 0 ? 'z-10' : 'cursor-pointer'
-              } ${visible ? '' : 'pointer-events-none'}`}
-              style={{
-                transform: `translateX(calc(-50% + ${o * 104}%)) scale(${o === 0 ? 1 : 0.86})`,
-                opacity: o === 0 ? 1 : visible ? 0.35 : 0,
-                filter: o === 0 ? 'none' : 'blur(1px)',
-              }}
-            >
-              <div
-                className="absolute inset-0"
-                style={{ background: `radial-gradient(90% 70% at 50% 0%, ${t.hex}40, transparent 65%)` }}
-                aria-hidden
-              />
-              <div className="absolute inset-x-5 bottom-0 top-10 flex flex-col overflow-hidden rounded-t-xl border border-b-0 border-white/10 bg-black/80 backdrop-blur md:inset-x-14 md:top-14">
-                <WindowBar>
-                  <span className="truncate text-[0.74rem] text-fg-2">{f.title}</span>
-                  <span className={`ml-auto font-mono text-[0.62rem] ${t.text}`}>
-                    {String(f.n).padStart(2, '0')} / {projects.length}
-                  </span>
-                </WindowBar>
-                <div className="grid min-h-0 flex-1 gap-6 p-5 md:grid-cols-[1.2fr_1fr] md:p-7">
-                  <div>
-                    <p className="kicker !text-[0.6rem]">{recentWork.keyFeatures}</p>
-                    <ul className="mt-3 space-y-2">
-                      {f.features.slice(0, 5).map((feat) => (
-                        <li key={feat} className="flex gap-2.5 text-[0.82rem] leading-snug text-fg-2">
-                          <Check className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${t.text}`} />
-                          {feat}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="hidden space-y-5 md:block">
-                    <div>
-                      <p className="kicker !text-[0.6rem]">{recentWork.bestFor}</p>
-                      <p className="mt-2 text-[0.82rem] leading-snug text-fg-2">{f.bestFor}</p>
-                    </div>
-                    <div>
-                      <p className="kicker !text-[0.6rem]">{recentWork.technologies}</p>
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {f.technologies.slice(0, 6).map((tech) => (
-                          <span key={tech} className="rounded-md border border-line bg-white/[0.03] px-2 py-0.5 font-mono text-[0.64rem] text-fg-2">
-                            {tech}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <p className="kicker !text-[0.6rem]">{recentWork.timeToDevelop}</p>
-                      <p className={`mt-2 text-[0.82rem] ${t.text}`}>
-                        {f.months} {f.months === 1 ? 'month' : 'months'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </article>
-          )
-        })}
-      </div>
-
-      <div className="wrap mt-8">
-        <div className="mx-auto flex max-w-[46rem] flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div key={p.title} className="animate-[fade_0.6s_ease-out]">
-            <h3 className="text-[1.15rem] font-medium tracking-[-0.025em]">{p.title}</h3>
-            <p className="mt-1.5 max-w-[30rem] text-[0.9rem] leading-relaxed text-fg-3">{p.description}</p>
+      <div data-fly-track className="relative hidden h-[260vh] lg:block">
+        <div className="sticky top-0 h-screen overflow-hidden">
+          <div data-fly-copy className="absolute left-1/2 top-1/2 z-10 w-[30rem] -translate-x-1/2 -translate-y-1/2 text-center">
+            <p className="label">{recentWork.eyebrow}</p>
+            <h2 className="heading mt-5 text-[clamp(2.2rem,3.4vw,2.9rem)]">
+              <span className="text-fg">Projects that </span>
+              <span className="text-fg-3">drive results.</span>
+            </h2>
+            <p className="mx-auto mt-5 max-w-[26rem] text-[15px] leading-[1.7] text-fg-2">{recentWork.body}</p>
+            <div className="mt-7">
+              <Button href={links.contact} variant="ghost">
+                Start a project
+              </Button>
+            </div>
           </div>
-          <Button href={links.contact} variant="ghost" className="shrink-0">
-            {nav.cta}
-          </Button>
+          {picks.map((index, k) => (
+            <div key={index} data-fly className="absolute" style={{ left: spots[k].left, top: spots[k].top }}>
+              <Card index={index} k={k} />
+            </div>
+          ))}
         </div>
       </div>
     </section>

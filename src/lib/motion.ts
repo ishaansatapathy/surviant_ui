@@ -17,7 +17,7 @@ export const getLenis = () => lenis
 /** Lenis smooth scrolling, driven by GSAP's ticker so ScrollTrigger stays in step. */
 export function startSmoothScroll() {
   if (reducedMotion()) return () => {}
-  lenis = new Lenis({ lerp: 0.09 })
+  lenis = new Lenis({ lerp: 0.08, wheelMultiplier: 0.95, touchMultiplier: 1.4 })
   lenis.on('scroll', ScrollTrigger.update)
   const tick = (time: number) => lenis?.raf(time * 1000)
   gsap.ticker.add(tick)
