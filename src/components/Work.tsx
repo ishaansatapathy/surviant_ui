@@ -25,7 +25,7 @@ export function Work() {
         <Kicker className="justify-center">{recentWork.eyebrow}</Kicker>
         <Title
           text={['Projects that drive results. ', 'From startup MVPs to enterprise solutions.']}
-          className="mx-auto mt-5 max-w-[40rem] text-[clamp(1.85rem,3.4vw,2.75rem)]"
+          className="mx-auto mt-5 max-w-[48rem] text-[clamp(1.85rem,3.4vw,2.75rem)]"
         />
       </div>
 
