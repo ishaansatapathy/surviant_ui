@@ -30,7 +30,7 @@ export function Closing() {
       <div className="wrap relative z-10 pt-28 text-center md:pt-40">
         <Title
           text={['Start a conversation. ', contact.lead]}
-          className="mx-auto max-w-[42rem] text-[clamp(1.85rem,3.6vw,2.9rem)]"
+          className="mx-auto max-w-[48rem] text-[clamp(1.75rem,3.2vw,2.6rem)]"
         />
         <p data-reveal className="mx-auto mt-6 max-w-[30rem] text-[0.95rem] leading-relaxed text-fg-3">
           {contact.body}
@@ -45,7 +45,7 @@ export function Closing() {
 
       {/* Horizon: a dark planet with a coloured rim. */}
       <div className="relative mt-24 h-[300px] md:mt-28 md:h-[360px]" aria-hidden>
-        <div data-horizon className="absolute left-1/2 top-0 h-[2400px] w-[2400px] -translate-x-1/2 md:h-[3000px] md:w-[3000px]">
+        <div data-horizon className="absolute left-1/2 top-0 h-[1100px] w-[1100px] -translate-x-1/2 md:h-[3000px] md:w-[3000px]">
           <div
             data-horizon-glow
             className="absolute inset-0 rounded-full blur-[60px]"
