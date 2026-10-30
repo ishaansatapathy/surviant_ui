@@ -238,14 +238,6 @@ function Workspace({ running }: { running: boolean }) {
               )
             })}
           </ul>
-          <div
-            className={`mt-auto rounded-xl border border-line bg-s2 p-3 transition-[opacity,transform] duration-700 ${
-              stage === 'answer' && rows === 3 ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
-            }`}
-          >
-            <p className="kicker !text-[0.58rem]">{systemMap.result.label}</p>
-            <p className="mt-1.5 text-[0.74rem] leading-snug text-fg-2">{systemMap.result.body.join('')}</p>
-          </div>
         </aside>
       </div>
     </div>
@@ -403,13 +395,13 @@ export function Hero() {
             <Workspace running={inView} />
           </div>
 
-          <div data-hero-side className="absolute -left-14 top-[42%] z-20 hidden xl:block">
-            <div data-depth="0.6">
+          <div data-hero-side className="absolute -bottom-16 -left-20 z-20 hidden xl:block">
+            <div data-depth="0.35">
               <TestCard running={inView} />
             </div>
           </div>
-          <div data-hero-side className="absolute -right-12 top-[10%] z-20 hidden xl:block">
-            <div data-depth="1">
+          <div data-hero-side className="absolute -bottom-24 -right-16 z-20 hidden xl:block">
+            <div data-depth="0.6">
               <RunCard />
             </div>
           </div>
