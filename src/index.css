@@ -1,24 +1,27 @@
 @import 'tailwindcss';
 @import 'lenis/dist/lenis.css';
 
-/* Warm paper and ink, one loud tangerine, and soft tints for product surfaces. */
 @theme {
-  --color-paper: #faf8f3;
-  --color-cream: #f1ede4;
-  --color-sheet: #f7f5ef;
-  --color-ink: #1a1916;
-  --color-ink-2: #57534c;
-  --color-ink-3: #8f8a80;
-  --color-line: #e4ded2;
-  --color-tang: #ff5a1f;
-  --color-tang-deep: #e2450d;
-  --color-char: #1f1e1b;
-  --color-char-2: #2b2a26;
-  --color-lilac: #e2dcff;
-  --color-mint: #d3ecdc;
-  --color-butter: #f9ebb2;
+  --color-s1: #0a0a0a;
+  --color-s2: #111111;
+  --color-s3: #1a1a1a;
+  --color-s4: #242424;
 
-  --font-serif: 'Fraunces Variable', Georgia, serif;
+  --color-fg: #ededed;
+  --color-fg-2: #a1a1a1;
+  --color-fg-3: #6f6f6f;
+  --color-fg-4: #474747;
+
+  --color-line: rgb(255 255 255 / 0.08);
+  --color-line-2: rgb(255 255 255 / 0.14);
+
+  --color-violet: #a394ff;
+  --color-blue: #4ea2ff;
+  --color-orange: #ff8c52;
+  --color-green: #3fd48c;
+  --color-pink: #ff74b1;
+  --color-amber: #ffc857;
+
   --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
 
@@ -27,24 +30,24 @@
 
 @layer base {
   html {
-    background: var(--color-paper);
+    background: #000;
+    color-scheme: dark;
+  }
+  body {
+    background: #000;
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    letter-spacing: -0.011em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
-
-  body {
-    background: var(--color-paper);
-    color: var(--color-ink);
-    font-family: var(--font-sans);
-  }
-
   ::selection {
-    background: var(--color-tang);
+    background: rgb(78 162 255 / 0.35);
     color: #fff;
   }
-
   :focus-visible {
-    outline: 2px solid var(--color-tang);
+    outline: 2px solid var(--color-blue);
     outline-offset: 3px;
     border-radius: 6px;
   }
@@ -52,43 +55,72 @@
 
 @utility wrap {
   width: 100%;
-  max-width: 1280px;
+  max-width: 1200px;
   margin-inline: auto;
   padding-inline: 1.25rem;
-
   @media (width >= 48rem) {
     padding-inline: 2rem;
   }
 }
 
-/* Display serif: Fraunces with its soft/wonky axes off, so it reads crisp. */
-@utility serif {
-  font-family: var(--font-serif);
-  font-weight: 380;
-  font-variation-settings: 'SOFT' 0, 'WONK' 0;
-  font-optical-sizing: auto;
-  letter-spacing: -0.025em;
-  line-height: 1;
+@utility display {
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1.06;
 }
 
 @utility kicker {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  line-height: 1rem;
-  letter-spacing: 0.06em;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-ink-3);
+  color: var(--color-fg-3);
 }
 
-/* SplitText line masks: give italics and descenders room without shifting layout. */
-.split-line-mask {
-  padding: 0 0.1em 0.14em 0;
-  margin: 0 -0.1em -0.14em 0;
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility shimmer {
+  background: linear-gradient(90deg, #4a4a4a 0%, #4a4a4a 35%, #f2f2f2 50%, #4a4a4a 65%, #4a4a4a 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 1.8s linear infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
 }
 
 @keyframes caret {
   50% {
     opacity: 0;
+  }
+}
+
+@keyframes grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+    filter: blur(4px);
   }
 }
 
@@ -98,17 +130,15 @@
   }
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 currentColor;
+    opacity: 1;
   }
-}
-
-.no-scrollbar {
-  scrollbar-width: none;
-}
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+  100% {
+    box-shadow: 0 0 0 6px transparent;
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -118,5 +148,6 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
