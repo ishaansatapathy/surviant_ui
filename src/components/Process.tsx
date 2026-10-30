@@ -240,8 +240,8 @@ function Phase({ i }: { i: number }) {
       </div>
       <div ref={stage} className="relative overflow-hidden border-t border-line bg-s1 px-4 py-8 md:px-12 md:py-12">
         <div
-          className="pointer-events-none absolute -top-1/2 right-0 h-full w-2/3"
-          style={{ background: `radial-gradient(50% 50% at 70% 100%, ${tone.hex}18, transparent 70%)` }}
+          className="pointer-events-none absolute inset-0"
+          style={{ background: `radial-gradient(45% 70% at 80% 0%, ${tone.hex}1c, transparent 75%)` }}
           aria-hidden
         />
         <div className="relative">
