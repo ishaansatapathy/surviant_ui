@@ -24,7 +24,7 @@ export function Leadership() {
   return (
     <section ref={root} id="leadership" className="border-t border-line py-28 md:py-40">
       <div className="wrap grid gap-12 lg:grid-cols-12">
-        <div className="lg:col-span-4">
+        <div className="lg:col-span-5 lg:pr-8">
           <div className="lg:sticky lg:top-28">
             <Kicker>{leadership.eyebrow}</Kicker>
             <Title text={leadership.title} className="mt-5 text-[clamp(1.75rem,3vw,2.4rem)]" />
@@ -37,7 +37,7 @@ export function Leadership() {
           </div>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:col-span-8">
+        <div className="grid gap-5 sm:grid-cols-2 lg:col-span-7">
           {leadership.people.map((p) => (
             <article key={p.name} className="group overflow-hidden rounded-2xl border border-line bg-s1">
               <div data-portrait className="relative aspect-[4/5] overflow-hidden">
