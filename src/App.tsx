@@ -1,13 +1,14 @@
 import { useEffect, useRef } from 'react'
 import { Closing } from './components/Closing'
 import { Hero } from './components/Hero'
+import { Leadership } from './components/Leadership'
 import { Nav } from './components/Nav'
+import { Offerings } from './components/Offerings'
 import { Practices } from './components/Practices'
-import { Principles } from './components/Principles'
 import { Process } from './components/Process'
-import { SystemSlab } from './components/SystemSlab'
-import { Team } from './components/Team'
+import { SystemMap } from './components/SystemMap'
 import { useReveals } from './components/ui'
+import { Why } from './components/Why'
 import { Work } from './components/Work'
 import { scrollToTarget, startSmoothScroll } from './lib/motion'
 
@@ -42,19 +43,20 @@ export default function App() {
     <div ref={root}>
       <a
         href="#main"
-        className="sr-only z-[100] rounded-full bg-ink px-5 py-3 text-paper focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+        className="sr-only z-[100] rounded-full bg-fg px-5 py-3 text-black focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
       >
         Skip to content
       </a>
       <Nav />
       <main id="main">
         <Hero />
-        <SystemSlab />
+        <Offerings />
+        <SystemMap />
         <Practices />
         <Process />
-        <Principles />
+        <Why />
         <Work />
-        <Team />
+        <Leadership />
         <Closing />
       </main>
     </div>
