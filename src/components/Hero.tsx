@@ -1,259 +1,416 @@
-import { Mail, MapPin, Mic, Phone, Users, Video } from 'lucide-react'
+import { ArrowRight, ArrowUp, Check, Plus } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { contact, email, hero, howWeWork, leadership, links, offerings } from '../content'
+import { contact, footer, hero, howWeWork, links, offerings, services, systemMap } from '../content'
 import { gsap, reducedMotion, SplitText, useGSAP } from '../lib/motion'
-import { Button, Scribble, useInView, Window } from './ui'
+import { Button, Chip, phaseTones, practiceTones, tones, useInView, useSteps, WindowBar } from './ui'
 
-type Stage = 'typing' | 'thinking' | 'plan' | 'clear'
+type Stage = 'compose' | 'sent' | 'thinking' | 'answer' | 'reset'
 
-/**
- * The brief, written live: the constraint is typed in, then the plan
- * (Think, Build, Sustain) fills itself in underneath. Loops while visible.
- */
-function useBriefLoop(running: boolean) {
+/** The brief, written live: typed, sent, thought about, answered with a plan. */
+function useBrief(running: boolean) {
   const lead = contact.lead
-  const [stage, setStage] = useState<Stage>('typing')
+  const [stage, setStage] = useState<Stage>('compose')
   const [chars, setChars] = useState(0)
   const [rows, setRows] = useState(0)
 
   useEffect(() => {
     if (reducedMotion()) {
-      setStage('plan')
+      setStage('answer')
       setChars(lead.length)
       setRows(3)
       return
     }
     if (!running) return
-    let t: number
-    const after = (ms: number, fn: () => void) => {
-      t = window.setTimeout(fn, ms)
-    }
-    if (stage === 'typing') {
-      if (chars < lead.length) after(chars === 0 ? 900 : 24 + Math.random() * 30, () => setChars((c) => c + 1))
-      else after(500, () => setStage('thinking'))
-    } else if (stage === 'thinking') {
-      after(1100, () => setStage('plan'))
-    } else if (stage === 'plan') {
-      if (rows < 3) after(rows === 0 ? 150 : 750, () => setRows((r) => r + 1))
-      else after(4200, () => setStage('clear'))
-    } else {
-      after(650, () => {
+    let t = 0
+    const after = (ms: number, fn: () => void) => (t = window.setTimeout(fn, ms))
+    if (stage === 'compose') {
+      if (chars < lead.length) after(chars === 0 ? 1300 : 22 + Math.random() * 34, () => setChars((c) => c + 1))
+      else after(650, () => setStage('sent'))
+    } else if (stage === 'sent') after(500, () => setStage('thinking'))
+    else if (stage === 'thinking') after(1500, () => setStage('answer'))
+    else if (stage === 'answer') {
+      if (rows < 3) after(rows === 0 ? 700 : 650, () => setRows((r) => r + 1))
+      else after(5200, () => setStage('reset'))
+    } else
+      after(700, () => {
         setChars(0)
         setRows(0)
-        setStage('typing')
+        setStage('compose')
       })
-    }
     return () => window.clearTimeout(t)
   }, [running, stage, chars, rows, lead.length])
 
   return { lead, stage, chars, rows }
 }
 
-function BriefWindow({ running }: { running: boolean }) {
-  const { lead, stage, chars, rows } = useBriefLoop(running)
-  const typing = stage === 'typing'
-  const active = Math.max(0, rows - 1)
-
-  return (
-    <Window className="h-full" bodyClassName="relative flex h-[calc(100%-1.75rem)] flex-col px-6 pb-6 md:px-8">
-      <p className="serif mt-5 text-[1.75rem] md:text-[2.1rem]">{contact.title.join('')}</p>
-      <div className="mt-3 flex flex-wrap gap-2 text-[0.78rem] text-ink-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper px-2.5 py-1">
-          <MapPin className="h-3.5 w-3.5" />
-          {hero.location}
-        </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper px-2.5 py-1">
-          <Users className="h-3.5 w-3.5" />
-          {leadership.people.length}
-        </span>
-      </div>
-
-      <div className={`mt-5 text-[0.86rem] leading-snug transition-opacity duration-500 ${stage === 'clear' ? 'opacity-0' : ''}`}>
-        <p className="text-[0.92rem] leading-relaxed text-ink">
-          <span className="sr-only">{lead}</span>
-          <span aria-hidden>
-            {lead.slice(0, chars)}
-            {typing && <span className="ml-px inline-block h-[1.05em] w-[1.5px] translate-y-[0.2em] animate-[caret_1s_steps(1)_infinite] bg-tang" />}
-          </span>
-        </p>
-
-        <div className="relative mt-4 space-y-3 border-t border-dashed border-line pt-4">
-          {/* Shown between the brief and the plan. */}
-          <div
-            className={`absolute left-0 top-4 inline-flex items-center gap-2 rounded-full border border-line bg-white px-3 py-1.5 text-[0.75rem] text-ink-2 shadow-sm transition-all duration-500 ${
-              stage === 'thinking' ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-1 opacity-0'
-            }`}
-            aria-hidden
-          >
-            <span className="h-3 w-3 animate-[spin_0.9s_linear_infinite] rounded-full border-[1.5px] border-tang border-t-transparent" />
-            {howWeWork.title.join('').split('.')[0]}
-          </div>
-
-          {howWeWork.phases.map((ph, i) => (
-            <div
-              key={ph.name}
-              className={`transition-all duration-700 ease-out ${i < rows ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'}`}
-            >
-              <p className="flex flex-wrap items-baseline gap-x-2">
-                <span className="font-semibold text-ink">{ph.name}</span>
-                <span className="text-[0.78rem] text-tang">
-                  {howWeWork.outcomeLabel} {ph.outcome}
-                </span>
-              </p>
-              <p className="mt-1 text-ink-2">{ph.body}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Phase switch, like a notes / enhanced toggle. */}
-      <div className="mt-auto flex justify-center pt-4" aria-hidden>
-        <div className="relative grid grid-cols-3 rounded-full border border-line bg-cream p-1 text-[0.78rem]">
-          <span
-            className="absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/3)] rounded-full bg-white shadow-sm transition-transform duration-500 ease-out"
-            style={{ transform: `translateX(${active * 100}%)`, opacity: rows ? 1 : 0 }}
-          />
-          {howWeWork.phases.map((ph, i) => (
-            <span
-              key={ph.name}
-              className={`relative z-10 px-4 py-1.5 text-center transition-colors duration-300 ${rows && i === active ? 'text-ink' : 'text-ink-3'}`}
-            >
-              {ph.name}
-            </span>
-          ))}
-        </div>
-      </div>
-    </Window>
-  )
+const stageRange = (i: number) => {
+  const s = howWeWork.phases[i].stages
+  return `${s[0].n}–${s[s.length - 1].n}`
 }
 
-function CallTiles() {
+function Composer({ text, caret, placeholder }: { text: string; caret?: boolean; placeholder?: string }) {
   return (
-    <div className="rounded-[16px] bg-[#111] p-1.5 shadow-[0_24px_50px_-20px_rgba(0,0,0,0.6)]">
-      <div className="space-y-1.5">
-        {leadership.people.map((p) => (
-          <div key={p.name} className="relative aspect-square overflow-hidden rounded-[11px] bg-char">
-            <img src={p.image} alt={p.name} className="h-full w-full object-cover object-[center_15%]" />
-            <span className="absolute bottom-1.5 left-1.5 rounded-md bg-black/55 px-1.5 py-0.5 text-[0.62rem] font-medium text-white backdrop-blur">
-              {p.name}
-            </span>
-          </div>
-        ))}
-      </div>
-      <div className="flex justify-center gap-1.5 py-1.5" aria-hidden>
-        <span className="grid h-5 w-7 place-items-center rounded-full bg-white/15 text-white">
-          <Mic className="h-3 w-3" />
+    <div className="rounded-xl border border-line-2 bg-s2 p-3 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.8)]">
+      <p className="min-h-[2.6rem] text-[0.84rem] leading-snug text-fg">
+        {text ? (
+          <>
+            {text}
+            {caret && (
+              <span className="ml-px inline-block h-[1.05em] w-[1.5px] translate-y-[0.18em] animate-[caret_1s_steps(1)_infinite] bg-blue" />
+            )}
+          </>
+        ) : (
+          <span className="text-fg-4">{placeholder}</span>
+        )}
+      </p>
+      <div className="mt-2 flex items-center justify-between">
+        <span className="grid h-6 w-6 place-items-center rounded-md border border-line text-fg-3">
+          <Plus className="h-3 w-3" />
         </span>
-        <span className="grid h-5 w-7 place-items-center rounded-full bg-white/15 text-white">
-          <Video className="h-3 w-3" />
-        </span>
-        <span className="grid h-5 w-7 place-items-center rounded-full bg-[#ff3b30] text-white">
-          <Phone className="h-3 w-3 rotate-[135deg]" />
+        <span className="flex items-center gap-2 text-[0.7rem] text-fg-3">
+          {hero.location}
+          <span className={`grid h-6 w-6 place-items-center rounded-md transition-colors ${text ? 'bg-fg text-black' : 'bg-s4 text-fg-3'}`}>
+            <ArrowUp className="h-3 w-3" />
+          </span>
         </span>
       </div>
     </div>
   )
 }
 
+function Workspace({ running }: { running: boolean }) {
+  const { lead, stage, chars, rows } = useBrief(running)
+  const composing = stage === 'compose'
+  const thread = stage === 'sent' || stage === 'thinking' || stage === 'answer'
+  const sidebarItems = ['Services', 'How We Work', 'Work', 'About']
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-line-2 bg-s1 shadow-[0_50px_140px_-40px_rgba(0,0,0,1)]">
+      <WindowBar>
+        <span className="font-mono text-[0.7rem] text-fg-3">surviant / {links.contact.slice(1)}</span>
+        <span className="ml-auto inline-flex items-center gap-1.5 text-[0.7rem] text-fg-3">
+          <span className="h-1.5 w-1.5 rounded-full bg-green shadow-[0_0_8px] shadow-green" />
+          {hero.location}
+        </span>
+      </WindowBar>
+
+      <div className="flex h-[440px] md:h-[500px]">
+        {/* Sidebar */}
+        <aside className="hidden w-[200px] shrink-0 flex-col border-r border-line p-3 md:flex">
+          <div className="flex items-center gap-2 px-1.5 py-1">
+            <img src="/images/surviant-logo.jpg" alt="" className="h-5 w-5 rounded-[5px]" />
+            <span className="text-[0.82rem] font-medium">Surviant</span>
+          </div>
+          <div className="mt-3 flex items-center justify-between rounded-lg border border-line bg-s2 px-2.5 py-1.5 text-[0.74rem] text-fg-3">
+            Search
+            <kbd className="font-mono text-[0.65rem] text-fg-4">⌘K</kbd>
+          </div>
+          <ul className="mt-3 space-y-0.5 text-[0.78rem]">
+            <li className="rounded-md bg-white/[0.06] px-2 py-1.5 text-fg">{contact.cta}</li>
+            {sidebarItems.map((s) => (
+              <li key={s} className="px-2 py-1.5 text-fg-3">
+                {s}
+              </li>
+            ))}
+          </ul>
+          <p className="kicker mt-6 px-2 !text-[0.6rem]">Practices</p>
+          <ul className="mt-2 space-y-0.5 text-[0.76rem]">
+            {services.practices.map((p, i) => (
+              <li key={p.name} className="flex items-center gap-2 px-2 py-1.5 text-fg-2">
+                <span className={`h-2 w-2 rounded-[3px] ${practiceTones[i].bg}`} />
+                <span className="truncate">{p.name}</span>
+                <span className="ml-auto font-mono text-[0.65rem] text-fg-4">{p.count}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-auto px-2 font-mono text-[0.65rem] text-fg-4">{offerings.length} offerings</p>
+        </aside>
+
+        {/* Conversation */}
+        <div className="relative flex min-w-0 flex-1 flex-col">
+          <div className="flex h-11 shrink-0 items-center justify-between border-b border-line px-5 text-[0.78rem]">
+            <span className="text-fg-2">{contact.title.join('')}</span>
+            <span className="font-mono text-[0.65rem] text-fg-4">{howWeWork.phases.map((p) => p.name).join(' / ')}</span>
+          </div>
+
+          <div className="relative flex-1 overflow-hidden">
+            {/* Greeting + composer before sending */}
+            <div
+              className={`absolute inset-x-5 top-1/2 -translate-y-1/2 transition-[opacity,transform,filter] duration-700 ease-out md:inset-x-10 ${
+                composing ? 'opacity-100' : 'pointer-events-none -translate-y-[65%] opacity-0 blur-sm'
+              }`}
+            >
+              <p className="text-center text-[1.3rem] font-medium tracking-[-0.035em] text-fg md:text-[1.45rem]">{footer.prompt.title}</p>
+              <div className="mt-5">
+                <Composer text={lead.slice(0, chars)} caret={composing} placeholder={footer.prompt.body} />
+              </div>
+              <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+                {services.practices.map((p, i) => (
+                  <Chip key={p.name}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${practiceTones[i].bg}`} />
+                    {p.name}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+
+            {/* Thread */}
+            <div
+              className={`absolute inset-0 overflow-hidden px-5 pt-5 transition-opacity duration-500 md:px-10 ${
+                thread ? 'opacity-100' : 'pointer-events-none opacity-0'
+              }`}
+            >
+              <div className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-tr-md bg-s3 px-4 py-2.5 text-[0.82rem] leading-snug text-fg">
+                {lead}
+              </div>
+
+              <div className="relative mt-5 min-h-[1.5rem]">
+                <p
+                  className={`shimmer absolute left-0 top-0 text-[0.82rem] font-medium transition-opacity duration-300 ${
+                    stage === 'thinking' || stage === 'sent' ? 'opacity-100' : 'opacity-0'
+                  }`}
+                >
+                  Thinking
+                </p>
+                <p
+                  className={`text-[0.84rem] leading-relaxed text-fg-2 transition-[opacity,filter] duration-700 ${
+                    stage === 'answer' ? 'opacity-100 blur-0' : 'opacity-0 blur-[3px]'
+                  }`}
+                >
+                  {contact.body}
+                </p>
+              </div>
+
+              <ul className="mt-4 space-y-2">
+                {howWeWork.phases.map((ph, i) => (
+                  <li
+                    key={ph.name}
+                    className={`grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-xl border border-line bg-s2 px-3.5 py-2.5 transition-[opacity,transform,filter] duration-700 ease-out ${
+                      stage === 'answer' && i < rows ? 'translate-y-0 opacity-100 blur-0' : 'translate-y-2 opacity-0 blur-[2px]'
+                    }`}
+                  >
+                    <span className={`grid h-6 w-6 place-items-center rounded-md ${phaseTones[i].soft} ${phaseTones[i].text}`}>
+                      <Check className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[0.82rem] text-fg">
+                        {ph.name}
+                        <span className="text-fg-3"> · {ph.outcome}</span>
+                      </span>
+                      <span className="hidden truncate text-[0.74rem] text-fg-3 sm:block">{ph.body}</span>
+                    </span>
+                    <span className={`font-mono text-[0.65rem] ${phaseTones[i].text}`}>{stageRange(i)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div
+            className={`shrink-0 px-5 pb-5 transition-opacity duration-500 md:px-10 ${thread ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+            aria-hidden
+          >
+            <Composer text="" placeholder={footer.prompt.body} />
+          </div>
+        </div>
+
+        {/* System panel */}
+        <aside className="hidden w-[250px] shrink-0 flex-col border-l border-line p-5 lg:flex">
+          <p className="kicker !text-[0.6rem]">{systemMap.eyebrow.split(' / ')[0]}</p>
+          <ul className="mt-4 space-y-5">
+            {systemMap.layers.map((l, i) => {
+              const tone = [tones.orange, tones.blue, tones.violet][i]
+              const done = stage === 'answer' && rows > i
+              return (
+                <li key={l.title}>
+                  <p className={`font-mono text-[0.62rem] ${tone.text}`}>{l.label.split(' / ')[0]}</p>
+                  <p className="mt-1 text-[0.8rem] text-fg">{l.title}</p>
+                  <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.06]">
+                    <div
+                      className={`h-full origin-left rounded-full ${tone.bg} transition-transform duration-[1400ms] ease-out`}
+                      style={{ transform: `scaleX(${done ? 1 : 0.06})` }}
+                    />
+                  </div>
+                  <p className={`mt-1.5 text-[0.72rem] text-fg-3 transition-opacity duration-700 ${done ? 'opacity-100' : 'opacity-0'}`}>
+                    {l.outcome}
+                  </p>
+                </li>
+              )
+            })}
+          </ul>
+          <div
+            className={`mt-auto rounded-xl border border-line bg-s2 p-3 transition-[opacity,transform] duration-700 ${
+              stage === 'answer' && rows === 3 ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
+            }`}
+          >
+            <p className="kicker !text-[0.58rem]">{systemMap.result.label}</p>
+            <p className="mt-1.5 text-[0.74rem] leading-snug text-fg-2">{systemMap.result.body.join('')}</p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  )
+}
+
+/** Floating card: stage 05, its checks ticking off. */
+function TestCard({ running }: { running: boolean }) {
+  const stage = howWeWork.phases[1].stages[1]
+  const checks = ['Software behavior', 'AI quality', 'Failure paths', 'Performance', 'Accessibility']
+  const n = useSteps(running, checks.length, 650, 2600)
+  return (
+    <div className="w-[236px] rounded-xl border border-line-2 bg-s2/90 p-4 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.9)] backdrop-blur">
+      <p className="font-mono text-[0.62rem] text-blue">Stage {stage.n}</p>
+      <p className="mt-1 text-[0.82rem] text-fg">{stage.name}</p>
+      <ul className="mt-3 space-y-1.5">
+        {checks.map((c, i) => (
+          <li key={c} className="flex items-center gap-2 text-[0.74rem]">
+            <span
+              className={`grid h-4 w-4 place-items-center rounded-full border transition-colors duration-500 ${
+                i < n ? 'border-green bg-green text-black' : 'border-line-2 text-transparent'
+              }`}
+            >
+              <Check className="h-2.5 w-2.5" strokeWidth={3} />
+            </span>
+            <span className={i < n ? 'text-fg-2' : 'text-fg-4'}>{c}</span>
+          </li>
+        ))}
+      </ul>
+      <p className={`mt-3 text-[0.7rem] transition-opacity duration-700 ${n === checks.length ? 'text-green opacity-100' : 'opacity-0'}`}>
+        {stage.outcome}
+      </p>
+    </div>
+  )
+}
+
+/** Floating card: stage 06, a live system trace. */
+function RunCard() {
+  const stage = howWeWork.phases[2].stages[0]
+  return (
+    <div className="w-[230px] rounded-xl border border-line-2 bg-s2/90 p-4 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.9)] backdrop-blur">
+      <div className="flex items-center justify-between">
+        <p className="font-mono text-[0.62rem] text-green">Stage {stage.n}</p>
+        <span className="inline-flex items-center gap-1 text-[0.62rem] text-fg-3">
+          <span className="h-1.5 w-1.5 rounded-full bg-green" />
+          Live
+        </span>
+      </div>
+      <p className="mt-1 text-[0.82rem] text-fg">{stage.name}</p>
+      <svg viewBox="0 0 200 56" className="mt-3 h-14 w-full" aria-hidden>
+        <defs>
+          <linearGradient id="run-fill" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stopColor="#3fd48c" stopOpacity="0.28" />
+            <stop offset="1" stopColor="#3fd48c" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d="M0 40 C20 38 26 30 44 32 S70 18 88 24 S118 36 132 22 S166 10 200 14 V56 H0Z" fill="url(#run-fill)" />
+        <path
+          data-run-line
+          d="M0 40 C20 38 26 30 44 32 S70 18 88 24 S118 36 132 22 S166 10 200 14"
+          fill="none"
+          stroke="#3fd48c"
+          strokeWidth="1.5"
+          pathLength={1}
+          strokeDasharray="1"
+        />
+      </svg>
+      <p className="mt-2 text-[0.7rem] text-fg-3">{stage.outcome}</p>
+    </div>
+  )
+}
+
 export function Hero() {
   const root = useRef<HTMLElement>(null)
-  const stage = useRef<HTMLDivElement>(null)
-  const inView = useInView(stage)
+  const title = useRef<HTMLHeadingElement>(null)
+  const tilt = useRef<HTMLDivElement>(null)
+  const inView = useInView(tilt)
 
   useGSAP(
     () => {
       const mm = gsap.matchMedia()
       mm.add('(prefers-reduced-motion: no-preference)', () => {
-        const tl = gsap.timeline({ delay: 0.15 })
-        const title = SplitText.create('[data-hero-title]', { type: 'lines' })
-        tl.from(title.lines, { y: 50, opacity: 0, duration: 1.2, stagger: 0.09, ease: 'expo.out' })
-          .from('[data-hero-fade]', { y: 20, opacity: 0, duration: 1, stagger: 0.07, ease: 'expo.out' }, 0.25)
-          .from(
-            '[data-hero-piece]',
-            { y: 90, opacity: 0, filter: 'blur(10px)', duration: 1.5, stagger: 0.1, ease: 'expo.out' },
-            0.3,
-          )
-          .to('[data-scribble] path', { strokeDashoffset: 0, duration: 0.9, ease: 'power2.inOut' }, 0.9)
+        const split = SplitText.create(title.current, { type: 'words' })
+        gsap
+          .timeline({ delay: 0.1 })
+          .from('[data-hero-in]', { opacity: 0, y: 12, filter: 'blur(10px)', duration: 1.3, stagger: 0.09, ease: 'expo.out' }, 0)
+          .from(split.words, { opacity: 0, y: 10, filter: 'blur(14px)', duration: 1.3, stagger: 0.05, ease: 'expo.out' }, 0.1)
+          .from('[data-hero-window]', { opacity: 0, y: 120, duration: 1.8, ease: 'expo.out' }, 0.5)
+          .from('[data-hero-glow]', { opacity: 0, duration: 2.4, ease: 'power2.out' }, 0.9)
+          .from('[data-hero-side]', { opacity: 0, y: 40, filter: 'blur(8px)', duration: 1.4, stagger: 0.18, ease: 'expo.out' }, 1.3)
+          .fromTo('[data-run-line]', { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 2, ease: 'power2.inOut' }, 1.6)
 
+        // The window starts tipped back and settles flat as the page scrolls.
+        gsap.fromTo(
+          tilt.current,
+          { rotateX: 16, scale: 0.92 },
+          {
+            rotateX: 0,
+            scale: 1,
+            ease: 'none',
+            scrollTrigger: { trigger: tilt.current, start: 'top 100%', end: 'top 20%', scrub: 0.6 },
+          },
+        )
         gsap.utils.toArray<HTMLElement>('[data-depth]').forEach((el) => {
           gsap.to(el, {
-            y: -Number(el.dataset.depth) * 60,
+            y: -Number(el.dataset.depth) * 120,
             ease: 'none',
-            scrollTrigger: { trigger: root.current, start: 'top top', end: 'bottom top', scrub: true },
+            scrollTrigger: { trigger: tilt.current, start: 'top 80%', end: 'bottom top', scrub: true },
           })
         })
-        return () => title.revert()
-      })
-      mm.add('(prefers-reduced-motion: reduce)', () => {
-        gsap.set('[data-scribble] path', { strokeDashoffset: 0 })
+        return () => split.revert()
       })
     },
     { scope: root },
   )
 
   return (
-    <section ref={root} id="top" className="relative overflow-hidden pb-20 pt-28 md:pb-28 md:pt-36">
-      <div className="wrap grid items-center gap-14 lg:grid-cols-[0.95fr_1.1fr] lg:gap-12">
-        <div>
-          <p data-hero-fade className="inline-flex items-center gap-2 rounded-full bg-cream py-1 pl-1 pr-3.5 text-[0.82rem] text-ink-2">
-            <span className="rounded-full bg-tang px-2.5 py-0.5 text-[0.72rem] font-medium text-white">{hero.location}</span>
-            {hero.eyebrow}
-          </p>
+    <section ref={root} id="top" className="relative pt-32 md:pt-40">
+      <div className="wrap text-center">
+        <a
+          data-hero-in
+          href={links.services}
+          className="group inline-flex items-center gap-2 rounded-full border border-line-2 py-1 pl-1 pr-3 text-[0.8rem] text-fg-2 transition-colors hover:border-white/25"
+        >
+          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[0.7rem] font-medium text-fg">{hero.location}</span>
+          {hero.eyebrow}
+          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+        </a>
 
-          <h1 data-hero-title className="serif mt-7 text-[clamp(3.1rem,6.3vw,6.1rem)] leading-[0.98]">
-            {hero.title[0]}
-            <span className="relative inline-block whitespace-nowrap">
-              <em className="font-[360]">{hero.title[1]}</em>
-              <Scribble manual className="-bottom-2 left-[-2%] h-4 w-[104%] text-tang" />
-            </span>
-          </h1>
+        <h1 ref={title} className="display mx-auto mt-7 max-w-[17ch] text-balance text-[clamp(2.4rem,5vw,3.6rem)]">
+          <span className="text-fg">{hero.title[0]}</span>
+          <span className="text-fg-3">{hero.title[1]}</span>
+        </h1>
 
-          <p data-hero-fade className="mt-8 max-w-[29rem] text-[1.12rem] leading-relaxed text-ink-2">
-            {hero.body}
-          </p>
-          <div data-hero-fade className="mt-9 flex flex-wrap gap-3">
-            <Button href={links.contact}>{hero.primary}</Button>
-            <Button href={links.services} variant="paper">
-              {hero.secondary}
-            </Button>
-          </div>
-          <a
-            data-hero-fade
-            href={`mailto:${email}`}
-            className="mt-8 inline-flex items-center gap-2 text-[0.88rem] text-ink-3 transition-colors hover:text-ink"
-          >
-            <Mail className="h-4 w-4" />
-            {email}
-          </a>
+        <p data-hero-in className="mx-auto mt-5 max-w-[32rem] text-[1rem] leading-relaxed text-fg-3 md:text-[1.0625rem]">
+          {hero.body}
+        </p>
+        <div data-hero-in className="mt-8 flex flex-wrap justify-center gap-2.5">
+          <Button href={links.contact}>{hero.primary}</Button>
+          <Button href="#services" variant="ghost">
+            {hero.secondary}
+          </Button>
         </div>
+      </div>
 
-        {/* Product composition */}
-        <div ref={stage} className="relative h-[480px] sm:h-[560px] lg:h-[min(640px,74vh)] lg:min-h-[560px]">
-          <div data-hero-piece className="absolute left-0 top-[12%] h-[76%] w-[40%]">
-            <div
-              data-depth="0.4"
-              className="h-full w-full rounded-[10px] bg-tang bg-[repeating-linear-gradient(-45deg,rgba(255,255,255,0.16)_0_1px,transparent_1px_10px)]"
-            />
+      <div className="wrap mt-16 md:mt-20 [perspective:1800px]">
+        <div ref={tilt} className="relative origin-top [transform-style:preserve-3d]">
+          {/* Light leaking over the window's top edge */}
+          <div data-hero-glow className="pointer-events-none absolute inset-x-[8%] -top-24 h-56" aria-hidden>
+            <div className="absolute inset-0 bg-[radial-gradient(50%_60%_at_25%_70%,rgba(255,140,82,0.35),transparent),radial-gradient(45%_60%_at_55%_75%,rgba(163,148,255,0.4),transparent),radial-gradient(45%_60%_at_82%_70%,rgba(78,162,255,0.38),transparent)] blur-2xl" />
           </div>
-          <div data-hero-piece className="absolute right-0 top-0 h-[62%] w-[48%]">
-            <div data-depth="0.7" className="h-full w-full overflow-hidden rounded-[10px] bg-char p-4">
-              <ul className="columns-2 gap-4 font-mono text-[0.6rem] uppercase leading-[1.9] tracking-wider text-white/25" aria-hidden>
-                {offerings.map((o) => (
-                  <li key={o}>{o}</li>
-                ))}
-              </ul>
+          <div className="pointer-events-none absolute inset-x-[12%] top-0 z-10 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" aria-hidden />
+
+          <div data-hero-window className="relative">
+            <Workspace running={inView} />
+          </div>
+
+          <div data-hero-side className="absolute -left-14 top-[42%] z-20 hidden xl:block">
+            <div data-depth="0.6">
+              <TestCard running={inView} />
             </div>
           </div>
-
-          <div data-hero-piece className="absolute left-[4%] top-[6%] z-10 h-[88%] w-[92%] sm:left-[11%] sm:w-[68%]">
-            <div data-depth="0.15" className="h-full">
-              <BriefWindow running={inView} />
-            </div>
-          </div>
-
-          <div data-hero-piece className="absolute bottom-[3%] right-0 z-20 hidden w-[9.5rem] sm:block lg:-right-2">
-            <div data-depth="1.2">
-              <CallTiles />
+          <div data-hero-side className="absolute -right-12 top-[10%] z-20 hidden xl:block">
+            <div data-depth="1">
+              <RunCard />
             </div>
           </div>
         </div>
