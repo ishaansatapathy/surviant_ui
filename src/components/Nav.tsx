@@ -1,17 +1,24 @@
 import { Menu, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { links, nav } from '../content'
+import { email, links, nav } from '../content'
 import { getLenis } from '../lib/motion'
 import { Button } from './ui'
 
-const items = nav.items.filter((i) => i.label !== 'Research')
+// On the landing page the nav jumps to its sections; Research keeps its own page.
+const items = [
+  { label: 'Services', href: '#services' },
+  { label: 'How We Work', href: '#how-we-work' },
+  { label: 'Work', href: '#portfolio' },
+  { label: 'About', href: '#leadership' },
+  { label: 'Research', href: links.research },
+]
 
 export function Nav() {
-  const [floating, setFloating] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    const onScroll = () => setFloating(window.scrollY > 40)
+    const onScroll = () => setScrolled(window.scrollY > 24)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -23,40 +30,43 @@ export function Nav() {
   }, [open])
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3">
-      <nav
-        aria-label="Primary"
-        className={`mx-auto flex h-14 items-center justify-between rounded-full pl-3 pr-2 transition-all duration-500 ease-out ${
-          floating
-            ? 'max-w-[1180px] border border-line bg-paper/85 shadow-[0_10px_30px_-18px_rgba(40,30,10,0.35)] backdrop-blur-xl'
-            : 'max-w-[1280px] border border-transparent'
-        }`}
-      >
-        <a href="/" className="flex items-center gap-2.5" aria-label="Surviant home">
-          <img src="/images/surviant-logo.jpg" alt="" className="h-8 w-8 rounded-[8px]" />
-          <span className="text-[1.05rem] font-semibold tracking-[-0.02em]">{nav.name}</span>
+    <header
+      className={`fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color] duration-500 ${
+        scrolled || open ? 'border-line bg-black/75 backdrop-blur-xl' : 'border-transparent'
+      }`}
+    >
+      <nav aria-label="Primary" className="wrap flex h-16 items-center gap-10">
+        <a href="#top" className="flex items-center gap-2.5" aria-label="Surviant home">
+          <img src="/images/surviant-logo.jpg" alt="" className="h-7 w-7 rounded-[7px]" />
+          <span className="text-[1rem] font-medium tracking-[-0.03em]">{nav.name}</span>
         </a>
 
         <ul className="hidden items-center gap-7 md:flex">
           {items.map((item) => (
             <li key={item.label}>
-              <a href={item.href} className="text-[0.92rem] text-ink-2 transition-colors hover:text-ink">
+              <a href={item.href} className="text-[0.875rem] text-fg-3 transition-colors duration-300 hover:text-fg">
                 {item.label}
               </a>
             </li>
           ))}
         </ul>
 
-        <div className="flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-2">
+          <a
+            href={`mailto:${email}`}
+            className="hidden h-9 items-center rounded-full border border-line-2 px-4 text-[0.82rem] font-medium transition-colors hover:border-white/30 sm:inline-flex"
+          >
+            Talk to us
+          </a>
           <span className="hidden sm:block">
-            <Button href={links.contact} className="!h-10 !px-5">
+            <Button href={links.contact} className="!h-9 !px-4 !text-[0.82rem]">
               {nav.cta}
             </Button>
           </span>
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
-            className="grid h-10 w-10 place-items-center rounded-full bg-white ring-1 ring-line md:hidden"
+            className="grid h-9 w-9 place-items-center rounded-full border border-line-2 md:hidden"
             aria-expanded={open}
             aria-label={open ? 'Close menu' : 'Open menu'}
           >
@@ -66,17 +76,17 @@ export function Nav() {
       </nav>
 
       {open && (
-        <div className="fixed inset-x-3 top-20 rounded-3xl border border-line bg-paper p-6 shadow-xl md:hidden">
-          <ul className="flex flex-col">
+        <div className="wrap border-t border-line pb-8 pt-4 md:hidden">
+          <ul>
             {items.map((item) => (
-              <li key={item.label} className="border-b border-line last:border-0">
-                <a href={item.href} onClick={() => setOpen(false)} className="serif block py-3 text-3xl">
+              <li key={item.label} className="border-b border-line">
+                <a href={item.href} onClick={() => setOpen(false)} className="block py-4 text-[1.25rem] font-medium tracking-[-0.03em]">
                   {item.label}
                 </a>
               </li>
             ))}
           </ul>
-          <Button href={links.contact} className="mt-5 w-full justify-center">
+          <Button href={links.contact} className="mt-6 w-full justify-center !h-11">
             {nav.cta}
           </Button>
         </div>
